@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import javafx.application.Platform;
 
-/**
- *
- * @author lucas.burdell
- */
 public class ObservableAtomicInteger extends AtomicInteger {
     
     private ArrayList<Runnable> callbacks = new ArrayList<>();

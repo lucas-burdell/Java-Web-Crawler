@@ -18,11 +18,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-/**
- * FXML Controller class
- *
- * @author lucas.burdell
- */
 public class MainFXMLController extends Application implements Initializable {
 
     @FXML
@@ -34,8 +29,8 @@ public class MainFXMLController extends Application implements Initializable {
     @FXML
     private TextArea webOutput;
 
-    private ArrayList<Runner> runners = new ArrayList<>();
-    private ArrayList<Thread> threads = new ArrayList<>();
+    private final ArrayList<Runner> runners = new ArrayList<>();
+    private final ArrayList<Thread> threads = new ArrayList<>();
     @FXML
     private Label numberOfLinksVisitedText;
     @FXML
@@ -51,9 +46,6 @@ public class MainFXMLController extends Application implements Initializable {
 
     private long startTime;
 
-    /**
-     * Initializes the controller class.
-     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         numberOfLinksVisitedText.setText("Number of Links Visited: 0");
@@ -61,47 +53,29 @@ public class MainFXMLController extends Application implements Initializable {
         numberOfWebsitesSkippedText.setText("Number of Websites Skipped: 0");
         linksPerSecond.setText("Links per second: 0");
 
-        Runner.HOSTS.addConsumer(new BiConsumer<String, Integer>() {
-            @Override
-            public void accept(String t, Integer u) {
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (u <= 1) {
-                            String output = (t + "\n");
-                            webOutput.appendText(output);
-                        }
-                    }
-
-                });
-
-            }
+        Runner.HOSTS.addConsumer((String t, Integer u) -> {
+            Platform.runLater(() -> {
+                if (u <= 1) {
+                    String output = (t + "\n");
+                    webOutput.appendText(output);
+                }
+            });
         });
 
-        Runner.getNumberOfLinksVisited().addListener(new Runnable() {
-            @Override
-            public void run() {
-                numberOfLinksVisitedText.setText("Number of "
-                        + "links visited: " + Runner.getNumberOfLinksVisited());
-                updateLinksPerSecond(Runner.getNumberOfLinksVisited().get());
-            }
+        Runner.getNumberOfLinksVisited().addListener(() -> {
+            numberOfLinksVisitedText.setText("Number of "
+                    + "links visited: " + Runner.getNumberOfLinksVisited());
+            updateLinksPerSecond(Runner.getNumberOfLinksVisited().get());
         });
 
-        Runner.getNumberOfUniqueWebsites().addListener(new Runnable() {
-            @Override
-            public void run() {
-                numberOfUniqueWebsitesText.setText("Number of "
-                        + "unique websites visited: " + Runner.getNumberOfUniqueWebsites());
-            }
+        Runner.getNumberOfUniqueWebsites().addListener(() -> {
+            numberOfUniqueWebsitesText.setText("Number of "
+                    + "unique websites visited: " + Runner.getNumberOfUniqueWebsites());
         });
 
-        Runner.getNumberOfSkippedLinks().addListener(new Runnable() {
-            @Override
-            public void run() {
-                numberOfWebsitesSkippedText.setText("Number of "
-                        + "links skipped: " + Runner.getNumberOfSkippedLinks());
-                //updateLinksPerSecond();
-            }
+        Runner.getNumberOfSkippedLinks().addListener(() -> {
+            numberOfWebsitesSkippedText.setText("Number of "
+                    + "links skipped: " + Runner.getNumberOfSkippedLinks());
         });
     }
 
@@ -128,8 +102,7 @@ public class MainFXMLController extends Application implements Initializable {
             String startUrlString = startUrl.getText();
             int numberOfThreads = Integer.parseInt(threadCount.getText());
             int cutoff = Integer.parseInt(skipWebNumber.getText());
-            Runner.setCUTOFF_NUMBER(cutoff);
-            //startButton.setDisable(true);
+            Runner.setCutoffNumber(cutoff);
             startButton.setText("Stop");
             startThreads(startUrlString, numberOfThreads);
         } else {
@@ -148,23 +121,17 @@ public class MainFXMLController extends Application implements Initializable {
     public void updateLinksPerSecond(long distance) {
         final DecimalFormat formatter = new DecimalFormat("#.##");
         long time = System.currentTimeMillis() - startTime;
-        //long distance = Runner.getNumberOfLinksVisited().get();
-        // + Runner.getNumberOfSkippedLinks().get();
         double rate = ((double) distance) / (time / 1000.);
         linksPerSecond.setText("Links per second: " + formatter.format(rate));
     }
 
     public void startThreads(String startUrl, int numThreads) {
-
         runners.clear();
         threads.clear();
         runners.add(new Runner(new Webpage(startUrl)));
-
         for (int i = 1; i < numThreads; i++) {
             runners.add(new Runner());
         }
-
-        System.out.println("starting threads");
         for (int i = 0; i < runners.size(); i++) {
             Runner runner = runners.get(i);
             Thread thread = new Thread(runner);
@@ -173,7 +140,5 @@ public class MainFXMLController extends Application implements Initializable {
             thread.setName("Crawler thread " + Integer.toString(i));
             thread.start();
         }
-        System.out.println("all threads started");
     }
-
 }
